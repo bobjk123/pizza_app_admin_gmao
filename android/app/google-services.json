@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "530571267662",
+    "project_id": "pizza-app-8sc-gmao",
+    "storage_bucket": "pizza-app-8sc-gmao.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:530571267662:android:65d2631c35c3283252bd1f",
+        "android_client_info": {
+          "package_name": "com.example.pizza_app_8sc_gmao"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCSrW_aaER11W1bJCkTMmkXMAl1MrY_eHE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:530571267662:android:a6eaa01b25fb647f52bd1f",
+        "android_client_info": {
+          "package_name": "com.example.pizza_app_admin_gmao"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCSrW_aaER11W1bJCkTMmkXMAl1MrY_eHE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
