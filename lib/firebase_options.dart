@@ -85,4 +85,5 @@ class DefaultFirebaseOptions {
     storageBucket: 'pizza-app-8sc-gmao.firebasestorage.app',
     measurementId: 'G-N3NXNKHLQD',
   );
+
 }
