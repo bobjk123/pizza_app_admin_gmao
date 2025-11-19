@@ -3,12 +3,14 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pizza_app_admin_gmao/src/blocs/authentication_bloc/authentication_bloc.dart';
 import 'package:pizza_app_admin_gmao/src/modules/auth/blocs/sign_in_bloc/sign_in_bloc.dart';
-import 'package:pizza_app_admin_gmao/src/modules/auth/views/login_screen.dart';
-import 'package:pizza_app_admin_gmao/src/modules/base/views/base_screen.dart';
-import 'package:pizza_app_admin_gmao/src/modules/home/views/home_screen.dart';
-import 'package:pizza_app_admin_gmao/src/modules/splash/views/splash_screen.dart';
+import 'package:pizza_app_admin_gmao/src/modules/create_pizza/blocs/create_pizza_bloc/create_pizza_bloc.dart';
+import 'package:pizza_app_admin_gmao/src/modules/create_pizza/blocs/upload_picture_bloc/upload_picture_bloc.dart';
 import 'package:pizza_repository/pizza_repository.dart';
-
+import '../modules/auth/views/login_screen.dart';
+import '../modules/base/views/base_screen.dart';
+import '../modules/create_pizza/views/create_pizza_screen.dart';
+import '../modules/home/views/home_screen.dart';
+import '../modules/splash/views/splash_screen.dart';
 
 final _navKey = GlobalKey<NavigatorState>();
 final _shellNavigationKey = GlobalKey<NavigatorState>();
@@ -61,14 +63,14 @@ GoRouter router(AuthenticationBloc authBloc) {
               ),
               GoRoute(
                 path: '/create',
-                // builder: (context, state) => MultiBlocProvider(providers: [
-                //   BlocProvider(
-                //     create: (context) => UploadPictureBloc(FirebasePizzaRepo()),
-                //   ),
-                //   BlocProvider(
-                //     create: (context) => CreatePizzaBloc(FirebasePizzaRepo()),
-                //   )
-                // ], child: const CreatePizzaScreen()),
+                builder: (context, state) => MultiBlocProvider(providers: [
+                  BlocProvider(
+                    create: (context) => UploadPictureBloc(FirebasePizzaRepo()),
+                  ),
+                  BlocProvider(
+                    create: (context) => CreatePizzaBloc(FirebasePizzaRepo()),
+                  )
+                ], child: const CreatePizzaScreen()),
               )
             ])
       ]);

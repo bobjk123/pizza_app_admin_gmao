@@ -1,7 +1,10 @@
 import 'dart:developer';
-
+import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:pizza_repository/pizza_repository.dart';
+// ignore: deprecated_member_use, unused_import, avoid_web_libraries_in_flutter
+import 'dart:html' as html;
 
 class FirebasePizzaRepo implements PizzaRepo {
   final pizzaCollection = FirebaseFirestore.instance.collection('pizzas');
@@ -9,24 +12,41 @@ class FirebasePizzaRepo implements PizzaRepo {
   @override
   Future<List<Pizza>> getPizzas() async {
     try {
-      final snapshot = await pizzaCollection.get();
-      return snapshot.docs
+      return await pizzaCollection.get().then((value) => value.docs
           .map((e) => Pizza.fromEntity(PizzaEntity.fromDocument(e.data())))
-          .toList();
+          .toList());
     } catch (e) {
-      // Provide clearer logging for Firestore permission issues and fail
-      // gracefully for consumers (return empty list) while still surfacing
-      // other unexpected errors.
-      if (e is FirebaseException) {
-        log('Firestore FirebaseException in getPizzas: code=${e.code}, message=${e.message}');
-        if (e.code == 'permission-denied') {
-          // Return an empty list instead of throwing so UI can show a
-          // friendly message and continue running.
-          return <Pizza>[];
-        }
-      }
+      log(e.toString());
+      rethrow;
+    }
+  }
 
-      log('Unexpected error in getPizzas: $e');
+  @override
+  Future<String> sendImage(Uint8List file, String name) async {
+    try {
+      Reference firebaseStorageRef = FirebaseStorage.instance.ref().child(name);
+
+      await firebaseStorageRef.putData(
+          file,
+          SettableMetadata(
+            contentType: 'image/jpeg',
+            // customMetadata: {'picked-file-path': file.path},
+          ));
+      return await firebaseStorageRef.getDownloadURL();
+    } catch (e) {
+      log(e.toString());
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> createPizzas(Pizza pizza) async {
+    try {
+      return await pizzaCollection
+          .doc(pizza.pizzaId)
+          .set(pizza.toEntity().toDocument());
+    } catch (e) {
+      log(e.toString());
       rethrow;
     }
   }
