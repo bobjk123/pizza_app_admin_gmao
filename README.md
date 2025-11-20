@@ -50,6 +50,42 @@ Security notes about API keys and Firebase config:
 - Firebase config (API keys in `firebase_options.dart`) is not a secret like a password — it identifies your Firebase project, but you still must secure your backend by writing proper Firestore Security Rules and restricting API usage where applicable.
 - Do NOT embed service account JSON files in the client or commit private credentials to the repo.
 
+### 🔐 Firebase security & leaked config (important)
+
+- The repository previously contained a `lib/firebase_options.dart` file with Firebase configuration (API key and project identifiers). That file has been removed from Git tracking and a `.gitignore` entry was added to prevent future commits of the file. The local file may still exist in your working copy.
+- If your Firebase config (API key) was ever pushed to a public remote, treat it as potentially exposed.
+
+Recommended immediate actions if a Firebase file was pushed to a public repository:
+1. **Rotate your API key and credentials** in Firebase Console immediately:
+  - Go to Project Settings → General → Your apps, and regenerate or replace API keys where applicable.
+  - If any server-side credentials (service accounts) were exposed, rotate them as well.
+2. **Harden Firestore rules** to require proper authentication and validate inputs. Do not rely on the secrecy of client keys.
+3. If you want the file removed from the remote Git history (so it no longer appears in past commits), use a history-rewrite tool like BFG or git-filter-repo. This requires a force-push and coordination with all collaborators.
+
+Quick purge (example with BFG, run from a fresh clone):
+
+```bash
+# 1) make a bare mirror clone
+git clone --mirror git@github.com:YOUR-USER/pizza_app_admin_gmao.git
+
+# 2) use the BFG tool to delete the file across history
+java -jar bfg.jar --delete-files firebase_options.dart pizza_app_admin_gmao.git
+
+# 3) clean refs and garbage-collect
+cd pizza_app_admin_gmao.git
+git reflog expire --expire=now --all
+git gc --prune=now --aggressive
+
+# 4) push the cleaned history (force)
+git push --force
+```
+
+Notes about purging history:
+- Rewriting history changes commit SHAs and requires all collaborators to re-clone or reset their local clones. Coordinate before doing this on a shared repository.
+- Even after purging, rotate any credentials that were exposed; purging does not invalidate keys.
+
+If you'd like, I can guide you through using BFG or `git filter-repo` step-by-step, or run the commands here if you confirm you want to force-push rewritten history.
+
 ## 📁 Project structure (important files)
 
 - `lib/` — main Flutter app code
@@ -138,3 +174,30 @@ A few resources to get you started if this is your first Flutter project:
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev/), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
+
+## 🔐 Contributing to Firebase (quick summary)
+
+If you plan to contribute changes that touch Firebase (config, rules, or code interacting with Auth/Firestore), follow these minimal steps before opening a PR. For the full guide, see `CONTRIBUTING_FIREBASE.md` at the repository root.
+
+- **Do not** commit `lib/firebase_options.dart` or any credentials to the repository.
+- Use the **Firebase Emulator Suite** to test changes locally: `firebase emulators:start --only firestore,auth`.
+- Generate your local `lib/firebase_options.dart` only with `flutterfire configure` and keep it listed in `.gitignore`.
+- Validate Firestore rules changes using the emulator before deploying.
+
+Quick commands:
+
+```powershell
+# Install Firebase CLI
+npm install -g firebase-tools
+
+# (Optional) install FlutterFire CLI
+dart pub global activate flutterfire_cli
+
+# Start emulators (from project root)
+firebase emulators:start --only firestore,auth
+
+# Run the app in debug (use emulators instead of live services)
+flutter run -d chrome
+```
+
+If you need the complete guide or instructions for rotating/removing leaked keys, see `CONTRIBUTING_FIREBASE.md`.
