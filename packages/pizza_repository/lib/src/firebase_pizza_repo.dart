@@ -34,6 +34,7 @@ class FirebasePizzaRepo implements PizzaRepo {
   @override
   Future<void> createPizzas(Pizza pizza) async {
     try {
+      log('Creating pizza document: ${pizza.toEntity().toDocument()}');
       return await pizzaCollection
           .doc(pizza.pizzaId)
           .set(pizza.toEntity().toDocument());

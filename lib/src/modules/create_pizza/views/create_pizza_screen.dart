@@ -5,12 +5,15 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart';
+import 'package:pizza_app_admin_gmao/src/utils/local_image_provider.dart';
+import 'package:pizza_app_admin_gmao/src/utils/image_mover.dart';
 import 'package:pizza_app_admin_gmao/src/modules/create_pizza/blocs/create_pizza_bloc/create_pizza_bloc.dart';
 import 'package:pizza_app_admin_gmao/src/modules/create_pizza/blocs/upload_picture_bloc/upload_picture_bloc.dart';
 import 'package:pizza_repository/pizza_repository.dart';
 import '../../../components/my_text_field.dart';
 import '../components/macro.dart';
-// ignore: deprecated_member_use, avoid_web_libraries_in_flutter, unused_import
+// removed direct dart:html import to keep file multi-platform
+// ignore: deprecated_member_use, unused_import, avoid_web_libraries_in_flutter
 import 'dart:html' as html;
 
 class CreatePizzaScreen extends StatefulWidget {
@@ -92,14 +95,17 @@ class _CreatePizzaScreenState extends State<CreatePizzaScreen> {
                             await image.readAsBytes(), basename(image.path)));
                       }
                     },
-                    child: pizza.picture.startsWith(('http'))
+                    child: (pizza.picture.startsWith('http') ||
+                            pizza.picture.startsWith('assets/'))
                         ? Container(
                             width: 400,
                             height: 400,
                             decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(20),
                                 image: DecorationImage(
-                                    image: NetworkImage(pizza.picture),
+                                    image: pizza.picture.startsWith('http')
+                                        ? NetworkImage(pizza.picture)
+                                        : localImageProvider(pizza.picture),
                                     fit: BoxFit.cover)))
                         : Ink(
                             width: 400,
@@ -345,7 +351,7 @@ class _CreatePizzaScreenState extends State<CreatePizzaScreen> {
                           width: 400,
                           height: 40,
                           child: TextButton(
-                              onPressed: () {
+                              onPressed: () async {
                                 if (_formKey.currentState!.validate()) {
                                   setState(() {
                                     pizza.name = nameController.text;
@@ -366,9 +372,21 @@ class _CreatePizzaScreenState extends State<CreatePizzaScreen> {
                                   });
                                   // ignore: avoid_print
                                   print(pizza.toString());
-                                  context
-                                      .read<CreatePizzaBloc>()
-                                      .add(CreatePizza(pizza));
+                                  // If the pizza.picture points to a local temp
+                                  // path under 'assets/images/', move the file to
+                                  // the final folder and keep the picture field
+                                  // as 'assets/images/<name>.<ext>'.
+                                  final createBloc =
+                                      context.read<CreatePizzaBloc>();
+                                  if (pizza.picture.startsWith('assets/')) {
+                                    try {
+                                      await moveTempImageToFinal(pizza.picture);
+                                    } catch (e) {
+                                      // ignore errors; the creation can still proceed
+                                    }
+                                  }
+
+                                  createBloc.add(CreatePizza(pizza));
                                 }
                               },
                               style: TextButton.styleFrom(
