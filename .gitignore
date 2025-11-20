@@ -45,3 +45,12 @@ app.*.map.json
 /android/app/release
 
 .fake
+
+# Firebase / local config files (may contain API keys)
+# Ignore FlutterFire generated config files and other local secrets
+lib/firebase_options.dart
+**/firebase_options.dart
+*.env
+/.firebase/
+android/app/google-services.json
+ios/Runner/GoogleService-Info.plist
