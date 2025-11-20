@@ -50,6 +50,8 @@ app.*.map.json
 # Ignore FlutterFire generated config files and other local secrets
 lib/firebase_options.dart
 **/firebase_options.dart
+firebase_options.dart
+firebase.json
 *.env
 /.firebase/
 android/app/google-services.json
