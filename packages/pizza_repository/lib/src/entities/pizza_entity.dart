@@ -40,16 +40,35 @@ class PizzaEntity {
   }
 
   static PizzaEntity fromDocument(Map<String, dynamic> doc) {
+    // Defensive parsing with sensible defaults to avoid runtime errors
+    final pizzaId = doc['pizzaId'] as String? ?? '';
+    final picture = doc['picture'] as String? ?? '';
+    final isVeg = doc['isVeg'] as bool? ?? false;
+    final spicy = (doc['spicy'] is int)
+        ? doc['spicy'] as int
+        : int.tryParse('${doc['spicy']}') ?? 1;
+    final name = doc['name'] as String? ?? '';
+    final description = doc['description'] as String? ?? '';
+    final price = (doc['price'] is int)
+        ? doc['price'] as int
+        : int.tryParse('${doc['price']}') ?? 0;
+    final discount = (doc['discount'] is int)
+        ? doc['discount'] as int
+        : int.tryParse('${doc['discount']}') ?? 0;
+    final macrosRaw =
+        doc['macros'] as Map<String, dynamic>? ?? <String, dynamic>{};
+    final macros = Macros.fromEntity(MacrosEntity.fromDocument(macrosRaw));
+
     return PizzaEntity(
-      pizzaId: doc['pizzaId'],
-      picture: doc['picture'],
-      isVeg: doc['isVeg'],
-      spicy: doc['spicy'],
-      name: doc['name'],
-      description: doc['description'],
-      price: doc['price'],
-      discount: doc['discount'],
-      macros: Macros.fromEntity(MacrosEntity.fromDocument(doc['macros'])),
+      pizzaId: pizzaId,
+      picture: picture,
+      isVeg: isVeg,
+      spicy: spicy,
+      name: name,
+      description: description,
+      price: price,
+      discount: discount,
+      macros: macros,
     );
   }
 }

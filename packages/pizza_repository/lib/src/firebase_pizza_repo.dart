@@ -1,10 +1,9 @@
 import 'dart:developer';
 import 'dart:typed_data';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:pizza_repository/pizza_repository.dart';
-// ignore: deprecated_member_use, unused_import, avoid_web_libraries_in_flutter
-import 'dart:html' as html;
+import 'save_image_local_io.dart'
+    if (dart.library.html) 'save_image_local_web.dart' as local_saver;
 
 class FirebasePizzaRepo implements PizzaRepo {
   final pizzaCollection = FirebaseFirestore.instance.collection('pizzas');
@@ -24,17 +23,10 @@ class FirebasePizzaRepo implements PizzaRepo {
   @override
   Future<String> sendImage(Uint8List file, String name) async {
     try {
-      Reference firebaseStorageRef = FirebaseStorage.instance.ref().child(name);
-
-      await firebaseStorageRef.putData(
-          file,
-          SettableMetadata(
-            contentType: 'image/jpeg',
-            // customMetadata: {'picked-file-path': file.path},
-          ));
-      return await firebaseStorageRef.getDownloadURL();
+      final savedPath = await local_saver.saveImageLocally(file, name);
+      return savedPath;
     } catch (e) {
-      log(e.toString());
+      log('Local save failed: $e');
       rethrow;
     }
   }

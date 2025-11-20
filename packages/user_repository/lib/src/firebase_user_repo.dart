@@ -61,7 +61,12 @@ class FirebaseUserRepo implements UserRepository {
           .doc(myUser.userId)
           .set(myUser.toEntity().toDocument());
     } catch (e) {
-      log(e.toString());
+      // Log more details for FirebaseException (permission issues, etc.)
+      if (e is FirebaseException) {
+        log('Firestore FirebaseException: code=${e.code}, message=${e.message}');
+      } else {
+        log(e.toString());
+      }
       rethrow;
     }
   }

@@ -12,10 +12,14 @@ class SplashScreen extends StatelessWidget {
       body: BlocBuilder<AuthenticationBloc, AuthenticationState>(
         builder: (context, state) {
           if (state.status == AuthenticationStatus.authenticated) {
-            context.go('/home');
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              context.go('/home');
+            });
             return Container();
           } else if (state.status == AuthenticationStatus.unauthenticated) {
-            context.go('/login');
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              context.go('/login');
+            });
             return Container();
           } else {
             return const Center(

@@ -21,11 +21,24 @@ class MacrosEntity {
   }
 
   static MacrosEntity fromDocument(Map<String, dynamic> doc) {
+    final calories = (doc['calories'] is int)
+        ? doc['calories'] as int
+        : int.tryParse('${doc['calories']}') ?? 0;
+    final proteins = (doc['proteins'] is int)
+        ? doc['proteins'] as int
+        : int.tryParse('${doc['proteins']}') ?? 0;
+    final fat = (doc['fat'] is int)
+        ? doc['fat'] as int
+        : int.tryParse('${doc['fat']}') ?? 0;
+    final carbs = (doc['carbs'] is int)
+        ? doc['carbs'] as int
+        : int.tryParse('${doc['carbs']}') ?? 0;
+
     return MacrosEntity(
-      calories: doc['calories'],
-      proteins: doc['proteins'],
-      fat: doc['fat'],
-      carbs: doc['carbs'],
+      calories: calories,
+      proteins: proteins,
+      fat: fat,
+      carbs: carbs,
     );
   }
 }

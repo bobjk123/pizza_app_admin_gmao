@@ -1,5 +1,3 @@
-// ignore: deprecated_member_use, unused_import, avoid_web_libraries_in_flutter
-import 'dart:html' as html;
 import 'dart:typed_data';
 import 'models/models.dart';
 
