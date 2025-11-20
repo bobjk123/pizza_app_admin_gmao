@@ -5,12 +5,12 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart';
+import 'package:pizza_app_admin_gmao/src/modules/create_pizza/blocs/create_pizza_bloc/create_pizza_bloc.dart';
+import 'package:pizza_app_admin_gmao/src/modules/create_pizza/blocs/upload_picture_bloc/upload_picture_bloc.dart';
 import 'package:pizza_repository/pizza_repository.dart';
 import '../../../components/my_text_field.dart';
-import '../blocs/create_pizza_bloc/create_pizza_bloc.dart';
-import '../blocs/upload_picture_bloc/upload_picture_bloc.dart';
 import '../components/macro.dart';
-// ignore: deprecated_member_use, unused_import, avoid_web_libraries_in_flutter
+// ignore: deprecated_member_use, avoid_web_libraries_in_flutter, unused_import
 import 'dart:html' as html;
 
 class CreatePizzaScreen extends StatefulWidget {
@@ -44,17 +44,17 @@ class _CreatePizzaScreenState extends State<CreatePizzaScreen> {
   Widget build(BuildContext context) {
     return BlocListener<CreatePizzaBloc, CreatePizzaState>(
       listener: (context, state) {
-        if(state is CreatePizzaSuccess) {
-					setState(() {
-					  creationRequired = false;
+        if (state is CreatePizzaSuccess) {
+          setState(() {
+            creationRequired = false;
             context.go('/');
-					});
+          });
           context.go('/');
-				} else if(state is CreatePizzaLoading) {
-					setState(() {
-					  creationRequired = true;
-					});
-				} 
+        } else if (state is CreatePizzaLoading) {
+          setState(() {
+            creationRequired = true;
+          });
+        }
       },
       child: BlocListener<UploadPictureBloc, UploadPictureState>(
         listener: (context, state) {
@@ -88,11 +88,19 @@ class _CreatePizzaScreenState extends State<CreatePizzaScreen> {
                         maxWidth: 1000,
                       );
                       if (image != null && context.mounted) {
-                        context.read<UploadPictureBloc>().add(UploadPicture(await image.readAsBytes(), basename(image.path)));
+                        context.read<UploadPictureBloc>().add(UploadPicture(
+                            await image.readAsBytes(), basename(image.path)));
                       }
                     },
                     child: pizza.picture.startsWith(('http'))
-                        ? Container(width: 400, height: 400, decoration: BoxDecoration(borderRadius: BorderRadius.circular(20), image: DecorationImage(image: NetworkImage(pizza.picture), fit: BoxFit.cover)))
+                        ? Container(
+                            width: 400,
+                            height: 400,
+                            decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                image: DecorationImage(
+                                    image: NetworkImage(pizza.picture),
+                                    fit: BoxFit.cover)))
                         : Ink(
                             width: 400,
                             height: 400,
@@ -164,7 +172,8 @@ class _CreatePizzaScreenState extends State<CreatePizzaScreen> {
                                         controller: priceController,
                                         hintText: 'Price',
                                         obscureText: false,
-                                        keyboardType: TextInputType.emailAddress,
+                                        keyboardType:
+                                            TextInputType.emailAddress,
                                         errorMsg: _errorMsg,
                                         validator: (val) {
                                           if (val!.isEmpty) {
@@ -182,7 +191,8 @@ class _CreatePizzaScreenState extends State<CreatePizzaScreen> {
                                           color: Colors.grey,
                                         ),
                                         obscureText: false,
-                                        keyboardType: TextInputType.emailAddress,
+                                        keyboardType:
+                                            TextInputType.emailAddress,
                                         errorMsg: _errorMsg,
                                         validator: (val) {
                                           if (val!.isEmpty) {
@@ -228,7 +238,12 @@ class _CreatePizzaScreenState extends State<CreatePizzaScreen> {
                                     child: Ink(
                                       width: 30,
                                       height: 30,
-                                      decoration: BoxDecoration(shape: BoxShape.circle, border: pizza.spicy == 1 ? Border.all(width: 2) : null, color: Colors.green),
+                                      decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          border: pizza.spicy == 1
+                                              ? Border.all(width: 2)
+                                              : null,
+                                          color: Colors.green),
                                     ),
                                   ),
                                   const SizedBox(
@@ -244,7 +259,12 @@ class _CreatePizzaScreenState extends State<CreatePizzaScreen> {
                                     child: Ink(
                                       width: 30,
                                       height: 30,
-                                      decoration: BoxDecoration(shape: BoxShape.circle, border: pizza.spicy == 2 ? Border.all(width: 2) : null, color: Colors.orange),
+                                      decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          border: pizza.spicy == 2
+                                              ? Border.all(width: 2)
+                                              : null,
+                                          color: Colors.orange),
                                     ),
                                   ),
                                   const SizedBox(
@@ -260,7 +280,12 @@ class _CreatePizzaScreenState extends State<CreatePizzaScreen> {
                                     child: Ink(
                                       width: 30,
                                       height: 30,
-                                      decoration: BoxDecoration(shape: BoxShape.circle, border: pizza.spicy == 3 ? Border.all(width: 2) : null, color: Colors.red),
+                                      decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          border: pizza.spicy == 3
+                                              ? Border.all(width: 2)
+                                              : null,
+                                          color: Colors.red),
                                     ),
                                   )
                                 ],
@@ -324,26 +349,45 @@ class _CreatePizzaScreenState extends State<CreatePizzaScreen> {
                                 if (_formKey.currentState!.validate()) {
                                   setState(() {
                                     pizza.name = nameController.text;
-                                    pizza.description = descriptionController.text;
-                                    pizza.price = int.parse(priceController.text);
-                                    pizza.discount = int.parse(discountController.text);
-                                    pizza.macros.calories = int.parse(calorieController.text);
-                                    pizza.macros.proteins = int.parse(proteinController.text);
-                                    pizza.macros.fat = int.parse(fatController.text);
-                                    pizza.macros.carbs = int.parse(carbsController.text);
+                                    pizza.description =
+                                        descriptionController.text;
+                                    pizza.price =
+                                        int.parse(priceController.text);
+                                    pizza.discount =
+                                        int.parse(discountController.text);
+                                    pizza.macros.calories =
+                                        int.parse(calorieController.text);
+                                    pizza.macros.proteins =
+                                        int.parse(proteinController.text);
+                                    pizza.macros.fat =
+                                        int.parse(fatController.text);
+                                    pizza.macros.carbs =
+                                        int.parse(carbsController.text);
                                   });
                                   // ignore: avoid_print
                                   print(pizza.toString());
-                                  context.read<CreatePizzaBloc>().add(CreatePizza(pizza));
+                                  context
+                                      .read<CreatePizzaBloc>()
+                                      .add(CreatePizza(pizza));
                                 }
                               },
-                              style: TextButton.styleFrom(elevation: 3.0, backgroundColor: Theme.of(context).colorScheme.primary, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(60))),
+                              style: TextButton.styleFrom(
+                                  elevation: 3.0,
+                                  backgroundColor:
+                                      Theme.of(context).colorScheme.primary,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(60))),
                               child: const Padding(
-                                padding: EdgeInsets.symmetric(horizontal: 25, vertical: 5),
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 25, vertical: 5),
                                 child: Text(
                                   'Create Pizza',
                                   textAlign: TextAlign.center,
-                                  style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600),
                                 ),
                               )),
                         )

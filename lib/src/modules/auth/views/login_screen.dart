@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import '../../../components/my_text_field.dart';
 import '../blocs/sign_in_bloc/sign_in_bloc.dart';
 
-
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
 

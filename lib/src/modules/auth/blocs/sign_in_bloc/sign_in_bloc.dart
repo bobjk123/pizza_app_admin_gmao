@@ -13,11 +13,15 @@ class SignInBloc extends Bloc<SignInEvent, SignInState> {
       emit(SignInProcess());
       try {
         await _userRepository.signIn(event.email, event.password);
+        emit(SignInSuccess());
       } catch (e) {
         emit(SignInFailure());
       }
     });
 
-    on<SignOutRequired>((event, emit) async => await _userRepository.logOut());
+    on<SignOutRequired>((event, emit) async {
+      await _userRepository.logOut();
+      emit(SignOutSuccess());
+    });
   }
 }
