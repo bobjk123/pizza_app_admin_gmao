@@ -14,6 +14,17 @@ This document describes how to configure, test, and contribute Firebase-related 
 - (Optional) `gcloud` if you manage resources with Google Cloud.
 - To reconfigure Firebase locally: `dart pub global activate flutterfire_cli` and then `flutterfire configure`.
 
+Optional: Supabase Storage
+-- This repository supports storing images in Supabase Storage instead of local disk. Supabase is used only for object storage; Firebase Auth and Cloud Firestore remain in use.
+-- To enable Supabase uploads, provide `SUPABASE_URL` and `SUPABASE_ANON_KEY` to the Flutter app at runtime using `--dart-define` (or set them as environment variables for your launcher).
+  Example run command:
+
+  ```powershell
+  flutter run -d chrome --dart-define=SUPABASE_URL=https://your-project.supabase.co --dart-define=SUPABASE_ANON_KEY=your_anon_key
+  ```
+
+-- The app will initialize Supabase when both defines are present and the `Pizza` repository will upload images to the configured Supabase Storage bucket (default bucket name: `public`).
+
 Useful commands:
 
 ```
