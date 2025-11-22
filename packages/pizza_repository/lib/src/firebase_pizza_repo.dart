@@ -95,14 +95,20 @@ class FirebasePizzaRepo implements PizzaRepo {
           identical(client, _supabaseClient) ? 'injected' : 'global';
       log('Using $clientSource Supabase client. Attempting upload for $nameWithExt to bucket=$_storageBucket');
       try {
-        final path = 'pizzas/$nameWithExt';
+        // Avoid duplicating the "pizzas" prefix when the bucket name is
+        // already "pizzas". If the bucket is named "pizzas", upload the
+        // file at the root of the bucket; otherwise, use the path
+        // `pizzas/<file>` inside the configured bucket.
+        final path =
+            _storageBucket == 'pizzas' ? nameWithExt : 'pizzas/$nameWithExt';
         await client.storage.from(_storageBucket).uploadBinary(path, file);
         final publicUrl =
             client.storage.from(_storageBucket).getPublicUrl(path);
         log('Uploaded to Supabase Storage: $publicUrl');
         return publicUrl;
-      } catch (e) {
+      } catch (e, st) {
         log('Supabase upload failed: $e');
+        log('Supabase upload stack: $st');
         // Fallthrough to local save
       }
     }
