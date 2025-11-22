@@ -11,7 +11,7 @@ Future<String> moveTempImageToFinal(String relativePath) async {
   final fileName = p.basename(relativePath);
   final srcPath = p.join(io.Directory.current.path, relativePath);
   final destDirPath =
-      r'C:\\Users\\aaron\\Desktop\\Aplicaciones Moviles\\pizza_app_8sc_gmao\\assets\\images';
+      r'C:\Users\aaron\Desktop\Aplicaciones Moviles\pizza_app_8sc_gmao\assets\images';
   final destDir = io.Directory(destDirPath);
   if (!destDir.existsSync()) {
     await destDir.create(recursive: true);

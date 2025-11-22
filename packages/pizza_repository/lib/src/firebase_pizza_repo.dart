@@ -22,7 +22,20 @@ class FirebasePizzaRepo implements PizzaRepo {
   FirebasePizzaRepo(
       {SupabaseClient? supabaseClient, String storageBucket = 'public'})
       : _supabaseClient = supabaseClient,
-        _storageBucket = storageBucket;
+        _storageBucket = storageBucket {
+    // Debug log to help identify whether Supabase client is available at runtime.
+    try {
+      log('FirebasePizzaRepo created. Supabase client provided: ${_supabaseClient != null}, bucket: $_storageBucket');
+    } catch (_) {}
+  }
+
+  SupabaseClient? _tryGetSupabaseClient() {
+    try {
+      return Supabase.instance.client;
+    } catch (_) {
+      return null;
+    }
+  }
 
   @override
   Future<List<Pizza>> getPizzas() async {
@@ -65,18 +78,17 @@ class FirebasePizzaRepo implements PizzaRepo {
   Future<String> sendImage(Uint8List file, String name) async {
     final nameWithExt = _ensureExtension(file, name);
 
-    // If a Supabase client is provided, try uploading to Supabase Storage.
-    if (_supabaseClient != null) {
+    // Try to obtain a Supabase client: prefer injected one, otherwise see if
+    // Supabase was initialized globally via `Supabase.initialize` in `main.dart`.
+    final client = _supabaseClient ?? _tryGetSupabaseClient();
+
+    if (client != null) {
+      log('Attempting Supabase upload for $nameWithExt to bucket=$_storageBucket');
       try {
         final path = 'pizzas/$nameWithExt';
-        await _supabaseClient!.storage
-            .from(_storageBucket)
-            .uploadBinary(path, file);
-        // uploadBinary may return void/null on success; get the public URL for storage object
-        final publicUrl = _supabaseClient!.storage
-            .from(_storageBucket)
-            .getPublicUrl(path)
-            .publicUrl;
+        await client.storage.from(_storageBucket).uploadBinary(path, file);
+        final publicUrl =
+            client.storage.from(_storageBucket).getPublicUrl(path);
         log('Uploaded to Supabase Storage: $publicUrl');
         return publicUrl;
       } catch (e) {
@@ -84,6 +96,8 @@ class FirebasePizzaRepo implements PizzaRepo {
         // Fallthrough to local save
       }
     }
+
+    log('No Supabase client available or upload failed; falling back to local save');
 
     // Fallback: save locally (keeps previous behavior)
     try {

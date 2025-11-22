@@ -52,7 +52,7 @@ lib/firebase_options.dart
 **/firebase_options.dart
 firebase_options.dart
 firebase.json
-*.env
+.env
 /.firebase/
 android/app/google-services.json
 ios/Runner/GoogleService-Info.plist

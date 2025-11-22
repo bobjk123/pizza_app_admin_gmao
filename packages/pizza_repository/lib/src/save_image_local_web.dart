@@ -48,11 +48,12 @@ String _mimeForExtension(String filename) {
 Future<String> saveImageLocally(Uint8List file, String name) async {
   final nameWithExt = _detectExtension(file, name);
   final mime = _mimeForExtension(nameWithExt);
+  // Create a blob URL for previewing the image in the browser.
+  // Do NOT revoke it immediately — the UI will use this URL while the page
+  // is open. Note: this URL is not persistent across sessions; it's only
+  // suitable for local preview. For long-term storage use Supabase or
+  // another remote storage provider.
   final blob = html.Blob([file], mime);
   final url = html.Url.createObjectUrlFromBlob(blob);
-  html.AnchorElement(href: url)
-    ..setAttribute('download', nameWithExt)
-    ..click();
-  html.Url.revokeObjectUrl(url);
-  return 'assets/images/$nameWithExt';
+  return url;
 }
