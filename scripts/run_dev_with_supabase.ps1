@@ -10,12 +10,15 @@ Usage:
 Set-StrictMode -Version Latest
 $envFile = Join-Path $PSScriptRoot '..\.env'
 if (-not (Test-Path $envFile)) {
-  Write-Host ".env file not found. Copy .env.example to .env and fill SUPABASE_URL and SUPABASE_ANON_KEY." -ForegroundColor Yellow
+  Write-Host ".env file not found at path: $envFile" -ForegroundColor Yellow
+  Write-Host "Current script folder: $PSScriptRoot" -ForegroundColor Yellow
+  Write-Host "Make sure you ran this script from the project root (pwsh .\scripts\run_dev_with_supabase.ps1)" -ForegroundColor Yellow
   exit 1
 }
 
 # Read .env lines, ignore empty lines and comments. Allow quoted values.
 $lines = Get-Content $envFile | Where-Object { $_ -and -not ($_.TrimStart().StartsWith('#')) }
+Write-Host "Read $((Get-Content $envFile | Where-Object { $_ -and -not ($_.TrimStart().StartsWith('#')) }).Count) non-empty lines from $envFile" -ForegroundColor DarkCyan
 $supabaseUrl = $null
 $supabaseAnonKey = $null
 $supabaseBucket = $null
@@ -48,4 +51,12 @@ if (-not [string]::IsNullOrEmpty($supabaseBucket)) {
 
 $cmd = "flutter run -d chrome $urlArg $keyArg$bucketArg"
 Write-Host $cmd -ForegroundColor Cyan
-Invoke-Expression $cmd
+try {
+  Invoke-Expression $cmd
+} catch {
+  Write-Host "Command failed with error:" -ForegroundColor Red
+  Write-Host $_.Exception.Message -ForegroundColor Red
+  if ($_.Exception.InnerException) { Write-Host $_.Exception.InnerException.Message -ForegroundColor Red }
+  Write-Host "Exiting with code 1" -ForegroundColor Red
+  exit 1
+}
