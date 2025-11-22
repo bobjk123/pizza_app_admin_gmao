@@ -15,15 +15,28 @@ This document describes how to configure, test, and contribute Firebase-related 
 - To reconfigure Firebase locally: `dart pub global activate flutterfire_cli` and then `flutterfire configure`.
 
 Optional: Supabase Storage
--- This repository supports storing images in Supabase Storage instead of local disk. Supabase is used only for object storage; Firebase Auth and Cloud Firestore remain in use.
--- To enable Supabase uploads, provide `SUPABASE_URL` and `SUPABASE_ANON_KEY` to the Flutter app at runtime using `--dart-define` (or set them as environment variables for your launcher).
-  Example run command:
 
-  ```powershell
-  flutter run -d chrome --dart-define=SUPABASE_URL=https://your-project.supabase.co --dart-define=SUPABASE_ANON_KEY=your_anon_key
-  ```
+This repository supports storing images in Supabase Storage instead of local disk. Supabase is used only for object storage; Firebase Auth and Cloud Firestore remain in use for authentication and metadata.
 
--- The app will initialize Supabase when both defines are present and the `Pizza` repository will upload images to the configured Supabase Storage bucket (default bucket name: `public`).
+How to enable Supabase uploads:
+
+- Method A (temporary): provide `SUPABASE_URL` and `SUPABASE_ANON_KEY` via `--dart-define` when running the app. Example:
+
+```powershell
+flutter run -d chrome --dart-define=SUPABASE_URL=https://your-project.supabase.co --dart-define=SUPABASE_ANON_KEY=your_anon_key
+```
+
+- Method B (recommended for local development): create a local `.env` file (copy `.env.example` → `.env`) and run the provided helper script which reads the `.env` and forwards the values to Flutter:
+
+```powershell
+pwsh .\scripts\run_dev_with_supabase.ps1
+```
+
+Notes about runtime behavior and the repo:
+
+- Default storage bucket: `public`.
+- The app initializes Supabase in `main.dart` when credentials are available. The `pizza_repository` will try to use a `SupabaseClient` injected by the app; if none is injected it will also attempt to read `Supabase.instance.client` so the repo can pick up a globally-initialized client.
+- When Supabase is configured and an upload succeeds, images are stored in Supabase Storage and the repository saves the public URL in Firestore. If Supabase is not configured or an upload fails, the repo falls back to the local-image simulation.
 
 Useful commands:
 
