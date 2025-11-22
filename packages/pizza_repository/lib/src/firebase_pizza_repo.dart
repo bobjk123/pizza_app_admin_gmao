@@ -9,6 +9,11 @@ import 'package:path/path.dart' as p;
 
 /// FirebasePizzaRepo supports uploading images to Supabase Storage (preferred)
 /// and falls back to local saves when no Supabase client is provided.
+// Allow picking up a bucket from --dart-define at runtime. If no bucket
+// is provided via constructor, we will prefer the compile-time define
+// `SUPABASE_BUCKET` when available, otherwise fall back to 'public'.
+const _supabaseBucketFromDefine = String.fromEnvironment('SUPABASE_BUCKET');
+
 class FirebasePizzaRepo implements PizzaRepo {
   final CollectionReference<Map<String, dynamic>> pizzaCollection =
       FirebaseFirestore.instance.collection('pizzas');
@@ -19,10 +24,13 @@ class FirebasePizzaRepo implements PizzaRepo {
   /// If you want to use Supabase Storage, pass a configured [SupabaseClient]
   /// instance and (optionally) the target storage bucket name.
   /// If [supabaseClient] is null, the repo will save images locally.
-  FirebasePizzaRepo(
-      {SupabaseClient? supabaseClient, String storageBucket = 'public'})
+  FirebasePizzaRepo({SupabaseClient? supabaseClient, String storageBucket = ''})
       : _supabaseClient = supabaseClient,
-        _storageBucket = storageBucket {
+        _storageBucket = storageBucket.isNotEmpty
+            ? storageBucket
+            : (_supabaseBucketFromDefine.isNotEmpty
+                ? _supabaseBucketFromDefine
+                : 'public') {
     // Debug log to help identify whether Supabase client is available at runtime.
     try {
       log('FirebasePizzaRepo created. Supabase client provided: ${_supabaseClient != null}, bucket: $_storageBucket');
@@ -83,7 +91,9 @@ class FirebasePizzaRepo implements PizzaRepo {
     final client = _supabaseClient ?? _tryGetSupabaseClient();
 
     if (client != null) {
-      log('Attempting Supabase upload for $nameWithExt to bucket=$_storageBucket');
+      final clientSource =
+          identical(client, _supabaseClient) ? 'injected' : 'global';
+      log('Using $clientSource Supabase client. Attempting upload for $nameWithExt to bucket=$_storageBucket');
       try {
         final path = 'pizzas/$nameWithExt';
         await client.storage.from(_storageBucket).uploadBinary(path, file);
