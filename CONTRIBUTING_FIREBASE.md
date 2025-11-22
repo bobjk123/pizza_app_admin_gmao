@@ -1,168 +1,116 @@
-**Contributing to Firebase**
+**Contributing to Firebase & Storage**
 
-This document describes how to configure, test, and contribute Firebase-related changes in this repository. It includes security best practices (do not commit credentials), how to use local emulators, steps to rotate keys, and how to propose changes (PR) that affect Firebase configuration or rules.
+This document explains how to configure, test, and contribute changes that affect Firebase (Auth / Firestore) and optional Supabase Storage usage in this repository. It focuses on security best practices (do not commit credentials), running local emulators, how to enable Supabase uploads for images, and recommended policies (RLS) for Supabase Storage.
 
 **Quick summary**:
 - **Do not** commit `lib/firebase_options.dart` or any configuration files containing secrets.
-- Use the **Firebase Emulator Suite** for local testing.
-- Keep Firestore and Storage security rules in separate files and test them with the emulator before publishing.
-- If a secret was exposed, **rotate** the key immediately and avoid history purges without team coordination.
+- Use the **Firebase Emulator Suite** for local testing of Auth and Firestore.
+- Store secrets (service_role keys, API keys) in secure environments (CI secrets, local `.env` ignored by git).
+- When using Supabase Storage, configure Row-Level Security (RLS) policies for the `pizzas` bucket as appropriate (examples below).
 
-**Prerequisites (local development)**:
+---
+
+## Prerequisites (local development)
+
 - Install `flutter` and `dart`.
 - Firebase CLI: `npm install -g firebase-tools`.
 - (Optional) `gcloud` if you manage resources with Google Cloud.
-- To reconfigure Firebase locally: `dart pub global activate flutterfire_cli` and then `flutterfire configure`.
+- To configure Firebase locally: `dart pub global activate flutterfire_cli` and then `flutterfire configure`.
 
-Optional: Supabase Storage
+## Supabase Storage (images)
 
-This repository supports storing images in Supabase Storage instead of local disk. Supabase is used only for object storage; Firebase Auth and Cloud Firestore remain in use for authentication and metadata.
+This repository supports storing images in Supabase Storage instead of using the local simulation. Firebase Auth and Cloud Firestore are still used for authentication and metadata.
 
-How to enable Supabase uploads:
+How to enable Supabase uploads locally:
 
 - Method A (temporary): provide `SUPABASE_URL` and `SUPABASE_ANON_KEY` via `--dart-define` when running the app. Example:
 
 ```powershell
-flutter run -d chrome --dart-define=SUPABASE_URL=https://your-project.supabase.co --dart-define=SUPABASE_ANON_KEY=your_anon_key
+flutter run -d chrome --dart-define=SUPABASE_URL=https://your-project.supabase.co --dart-define=SUPABASE_ANON_KEY=your_anon_key --dart-define=SUPABASE_BUCKET=pizzas
 ```
 
-- Method B (recommended for local development): create a local `.env` file (copy `.env.example` → `.env`) and run the provided helper script which reads the `.env` and forwards the values to Flutter:
+- Method B (recommended for local development): copy `.env.example` → `.env` and fill the values, then run the helper script which reads the `.env` and runs Flutter with the defines:
 
 ```powershell
 pwsh .\scripts\run_dev_with_supabase.ps1
 ```
 
-Notes about runtime behavior and the repo:
+Notes:
+- Default storage bucket used by the code is `pizzas` unless you override it with `SUPABASE_BUCKET`.
+- The repository prefers a `SupabaseClient` injected by the app; otherwise it uses `Supabase.instance.client` initialized in `main.dart`.
+- Uploaded images return a public URL (via `getPublicUrl`) and the public URL is stored in Firestore in place of a local path.
 
-- Default storage bucket: `public`.
-- The app initializes Supabase in `main.dart` when credentials are available. The `pizza_repository` will try to use a `SupabaseClient` injected by the app; if none is injected it will also attempt to read `Supabase.instance.client` so the repo can pick up a globally-initialized client.
-- When Supabase is configured and an upload succeeds, images are stored in Supabase Storage and the repository saves the public URL in Firestore. If Supabase is not configured or an upload fails, the repo falls back to the local-image simulation.
+## Row-Level Security (RLS) for Supabase Storage
 
-Useful commands:
+Supabase Storage enforces row-level security on `storage.objects`. If you get `403 new row violates row-level security policy`, you need to add an appropriate policy.
+
+Development policy (allow anonymous uploads to `pizzas` - use only in DEV):
+
+```sql
+create policy if not exists allow_anon_insert_pizzas
+  on storage.objects
+  for insert
+  with check (auth.role() = 'anon' AND bucket_id = 'pizzas');
+
+create policy if not exists allow_anon_update_pizzas
+  on storage.objects
+  for update
+  with check (auth.role() = 'anon' AND bucket_id = 'pizzas');
+```
+
+Production policy (require authenticated users):
+
+```sql
+create policy if not exists allow_auth_insert_pizzas
+  on storage.objects
+  for insert
+  with check (auth.role() = 'authenticated' AND bucket_id = 'pizzas');
+
+create policy if not exists allow_auth_update_pizzas
+  on storage.objects
+  for update
+  with check (auth.role() = 'authenticated' AND bucket_id = 'pizzas');
+```
+
+If you've enabled an authenticated-only policy, ensure the client authenticates with Supabase Auth before uploading, or perform uploads server-side using the `service_role` key.
+
+## Code locations & helpers
+
+- `packages/pizza_repository/lib/src/firebase_pizza_repo.dart`: implements image upload using Supabase Storage. It provides `sendImage(Uint8List, String)` (uploads bytes) and `sendImageFile(Object, String)` (accepts a `File` or file-like object and prefers `upload(File)` with `FileOptions`).
+- `lib/main.dart`: initializes Supabase when `SUPABASE_URL` and `SUPABASE_ANON_KEY` are present.
+- `scripts/run_dev_with_supabase.ps1`: helper that reads `.env` and launches `flutter run` with `--dart-define` flags.
+
+## Testing locally
+
+1. Create the `pizzas` bucket in the Storage section of the Supabase Dashboard or via the REST API (service_role required).
+2. Apply the RLS policy you prefer (development or production) in the SQL editor of Supabase.
+3. Ensure your `.env` contains the correct values for `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and `SUPABASE_BUCKET=pizzas`.
+4. Run the app with the helper script:
+
+```powershell
+pwsh .\scripts\run_dev_with_supabase.ps1
+```
+
+5. From the app UI (`CreatePizzaScreen`), add an image and create a pizza. Check logs for `Uploaded to Supabase Storage: ...` and verify the saved URL in Firestore.
+
+## Firebase emulator & Firestore
+
+Use the Firebase Emulator Suite for testing Auth and Firestore rules. Keep Firestore rules in a separate file and test them locally before deploying.
 
 ```
-# Install Firebase CLI (if missing)
-npm install -g firebase-tools
-
-# Optional: install FlutterFire CLI
-dart pub global activate flutterfire_cli
-
-# Start emulators (from project root where firebase.json is located)
+# Start emulators
 firebase emulators:start --only firestore,auth
-
-# Run the app using emulators (example)
-# Set environment variables in your terminal if needed
-flutter run -d chrome
 ```
 
-**Setting up your local environment (do not commit)**:
+## If you accidentally committed credentials
 
-1. Run `flutterfire configure` to generate your local `lib/firebase_options.dart`.
-2. Ensure `lib/firebase_options.dart` is excluded in `.gitignore`. Do not `git add` this file.
-3. If you need to share non-secret parameters (collection names, rule structure), publish them in documentation rather than configuration files containing credentials.
+1. Rotate the exposed key immediately in Firebase / Google Cloud Console.
+2. Remove the file from the index: `git rm --cached lib/firebase_options.dart` and commit.
+3. If you must remove history, coordinate with your team and use history-rewrite tools (BFG/git-filter-repo) with caution.
 
-**Testing with the Firebase Emulator Suite (recommended)**:
+## CI / Secrets
 
-1. In the repository root, configure `firebase.json` with the services you need (auth, firestore, storage if applicable).
-2. Run: `firebase emulators:start`.
-3. Adjust your code to target emulator endpoints during tests (for example, call `FirebaseFirestore.instance.useFirestoreEmulator('localhost', 8080)` from `main()` when detecting `kDebugMode` or an environment variable).
-
-Short example for Firestore in `main.dart` (debug mode):
-
-```
-import 'package:flutter/foundation.dart' show kDebugMode;
-import 'package:cloud_firestore/cloud_firestore.dart';
-
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  if (kDebugMode) {
-    FirebaseFirestore.instance.settings = Settings(host: 'localhost:8080', sslEnabled: false, persistenceEnabled: false);
-  }
-  runApp(MyApp());
-}
-```
-
-Adapt ports to match your `firebase.json`.
-
-**Security rules and Firestore Rules**:
-
-- Keep your rules in a separate file (for example `firestore.rules`) and test them with the emulator before deploying.
-- Review and test each rules change locally using `firebase emulators:exec` or `firebase emulators:start` and testing utilities.
-
-Example flow to test rules:
-
-```
-# Start the emulators
-firebase emulators:start --only firestore,auth
-
-# (Optional) run rule tests or scripts that validate behavior
-```
-
-**Best practices for commits and PRs that touch Firebase**:
-
-- Always include a description in the PR listing which Firebase services are affected.
-- Include steps to test locally with the emulator in the PR description.
-- If you change security rules or sensitive config, request review from at least one security-aware maintainer.
-
-**If you accidentally committed `firebase_options.dart` or a key**:
-
-1. Rotate the exposed key immediately in the Firebase/Google Cloud Console (API key / OAuth client secret / service account).
-2. Add the pattern to `.gitignore` and remove the file from the index: `git rm --cached lib/firebase_options.dart` and `git commit -m "chore: remove firebase config from repo"`.
-3. If the secret was public and you need to remove it from history, coordinate with your team before using history-rewrite tools (BFG or `git filter-repo`) because they require a force-push and impact all collaborators.
-
-Example commands to remove from the index (does not rewrite history):
-
-```
-git rm --cached lib/firebase_options.dart
-git commit -m "chore: remove firebase config from index"
-git push origin HEAD
-```
-
-**API key rotation (quick procedure)**:
-
-1. Open Firebase Console → Project Settings → General → Your apps → Config.
-2. For API keys: open Google Cloud Console → APIs & Services → Credentials.
-3. Create a new API key and restrict usage by HTTP referrer or IP addresses as appropriate.
-4. Replace your local `lib/firebase_options.dart` with the new configuration (or run `flutterfire configure` again).
-5. Test locally with emulators and then deploy.
-
-**CI / Continuous Integration**:
-
-- Do not commit `firebase_options.dart` to the repo. Instead, store secrets in the CI runner environment (GitHub Actions secrets, etc.) and generate `firebase_options.dart` during the workflow if needed.
-- For automated deployments to Firebase Hosting or Functions, use `firebase login:ci` and limited-scope secrets.
-
-Example GitHub Actions skeleton:
-
-```yaml
-name: Flutter CI
-on: [push, pull_request]
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: 'stable'
-      - name: Install dependencies
-        run: flutter pub get
-      - name: Run tests
-        run: flutter test
-```
-
-For operations that require Firebase credentials (deploy), store credentials in `Secrets` and use them in the workflow.
-
-**Security checklist before merging PRs that touch Firebase/config**:
-
-- [ ] No credentials appear in the diff (API keys, service account JSON, `firebase_options.dart`).
-- [ ] Firestore rules changes have been tested with the emulator.
-- [ ] Test and rollback steps are documented in the PR.
-- [ ] If secrets were exposed, they have been rotated and the rotation scope documented.
-
-**Contact & support**:
-
-If you need help rotating keys, testing rules, or configuring emulators, open an issue titled `firebase: ...` or tag the project maintainers.
+- Do not commit `lib/firebase_options.dart`. Use CI secrets to provide runtime configuration.
 
 ---
-Date created: November 20, 2025
+Date updated: November 21, 2025

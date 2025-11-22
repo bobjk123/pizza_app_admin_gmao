@@ -5,7 +5,6 @@ import 'package:pizza_app_admin_gmao/src/blocs/authentication_bloc/authenticatio
 import 'package:pizza_app_admin_gmao/src/modules/create_pizza/blocs/create_pizza_bloc/create_pizza_bloc.dart';
 import 'package:pizza_app_admin_gmao/src/modules/create_pizza/blocs/upload_picture_bloc/upload_picture_bloc.dart';
 import 'package:pizza_repository/pizza_repository.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../modules/auth/blocs/sign_in_bloc/sign_in_bloc.dart';
 import '../modules/auth/views/login_screen.dart';
 import '../modules/base/views/base_screen.dart';
@@ -65,24 +64,21 @@ GoRouter router(AuthenticationBloc authBloc) {
               GoRoute(
                 path: '/create',
                 builder: (context, state) {
-                  // If Supabase was initialized in main, pass its client to the repo.
-                  SupabaseClient? sbClient;
-                  try {
-                    sbClient = Supabase.instance.client;
-                  } catch (_) {
-                    sbClient = null;
-                  }
-
-                  return MultiBlocProvider(providers: [
-                    BlocProvider(
-                      create: (context) => UploadPictureBloc(
-                          FirebasePizzaRepo(supabaseClient: sbClient)),
-                    ),
-                    BlocProvider(
-                      create: (context) => CreatePizzaBloc(
-                          FirebasePizzaRepo(supabaseClient: sbClient)),
-                    )
-                  ], child: const CreatePizzaScreen());
+                  return MultiBlocProvider(
+                    providers: [
+                      BlocProvider<CreatePizzaBloc>(
+                        create: (context) => CreatePizzaBloc(
+                          FirebasePizzaRepo()
+                        ),
+                      ),
+                      BlocProvider<UploadPictureBloc>(
+                        create: (context) => UploadPictureBloc(
+                          FirebasePizzaRepo()
+                        ),
+                      ),
+                    ],
+                    child: const CreatePizzaScreen(),
+                  );
                 },
               )
             ])

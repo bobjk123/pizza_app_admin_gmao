@@ -6,10 +6,9 @@
 
 ## 🔎 Short description
 
-- This is a Flutter web application (also runnable on desktop) for administering a pizza menu. The app supports creating pizzas with images, storing metadata in Cloud Firestore, and a local simulation of image storage used when Firebase Storage is not available.
-- Main features: create/read pizzas, upload images (saved locally by default), and authentication (Firebase Auth).
- - This is a Flutter web application (also runnable on desktop) for administering a pizza menu. The app supports creating pizzas with images, storing metadata in Cloud Firestore, and — optionally — storing images in Supabase Storage. When Supabase is not configured, the app falls back to a local image simulation.
- - Main features: create/read pizzas, upload images (saved locally by default unless Supabase is configured), and authentication (Firebase Auth).
+This is a Flutter web application (also runnable on desktop) for administering a pizza menu. The app supports creating pizzas with images and stores metadata in Cloud Firestore. Image storage can be provided by Supabase Storage (preferred) or fall back to a local simulation when Supabase is not configured.
+
+Main features: create/read pizzas, upload images (to Supabase when configured), and authentication (Firebase Auth).
 
 ## 🧩 Main widgets / UI pieces
 
@@ -217,6 +216,8 @@ If you need the complete guide or instructions for rotating/removing leaked keys
   - Via `--dart-define` when running the app (for example: `--dart-define=SUPABASE_URL=... --dart-define=SUPABASE_ANON_KEY=...`).
   - Or create a local `.env` file (copy `.env.example` → `.env`) and run the helper script `pwsh .\scripts\run_dev_with_supabase.ps1` which loads the `.env` values and runs `flutter` with the defines. The `.env` file is ignored by git.
 
-- Default storage bucket: `public`. The `pizza_repository` will attempt to use a `SupabaseClient` injected by the app; if none is provided the repo also tries to use the globally-initialized `Supabase.instance.client` (when `Supabase.initialize` runs in `main.dart`).
+- Default storage bucket: `pizzas`. The `pizza_repository` will attempt to use a `SupabaseClient` injected by the app; if none is provided the repo also tries to use the globally-initialized `Supabase.instance.client` (when `Supabase.initialize` runs in `main.dart`).
 
-- When Supabase is set up, image uploads return a Supabase public URL that is saved in Firestore instead of a local filesystem path. If Supabase is not available or an upload fails, the app falls back to the local image simulation.
+When Supabase is set up and configured, image uploads return a Supabase public URL that is saved in Firestore instead of a local filesystem path. In the current project state the `pizzas` bucket is used and uploads are working — images uploaded from `CreatePizzaScreen` are visible and the app saves the public URL in Firestore. If Supabase is not available or an upload fails, the app falls back to the local image simulation.
+
+Security note: storage enforces row-level security (RLS). For development the project may have a policy allowing uploads from the `anon` role to the `pizzas` bucket; for production prefer requiring `authenticated` users or performing uploads server-side with a `service_role` key.
