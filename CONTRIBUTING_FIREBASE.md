@@ -40,39 +40,14 @@ Notes:
 - The repository prefers a `SupabaseClient` injected by the app; otherwise it uses `Supabase.instance.client` initialized in `main.dart`.
 - Uploaded images return a public URL (via `getPublicUrl`) and the public URL is stored in Firestore in place of a local path.
 
-## Row-Level Security (RLS) for Supabase Storage
+## Storage security and policies
 
-Supabase Storage enforces row-level security on `storage.objects`. If you get `403 new row violates row-level security policy`, you need to add an appropriate policy.
+Supabase Storage supports Row-Level Security (RLS) for fine-grained access control, but RLS is optional. The default development setup for this project is permissive so that image uploads work immediately during development. For production deployments you should either:
 
-Development policy (allow anonymous uploads to `pizzas` - use only in DEV):
+- Require authenticated users for uploads (use Supabase Auth), or
+- Perform uploads server-side using a `service_role` key (recommended when you need to restrict client permissions).
 
-```sql
-create policy if not exists allow_anon_insert_pizzas
-  on storage.objects
-  for insert
-  with check (auth.role() = 'anon' AND bucket_id = 'pizzas');
-
-create policy if not exists allow_anon_update_pizzas
-  on storage.objects
-  for update
-  with check (auth.role() = 'anon' AND bucket_id = 'pizzas');
-```
-
-Production policy (require authenticated users):
-
-```sql
-create policy if not exists allow_auth_insert_pizzas
-  on storage.objects
-  for insert
-  with check (auth.role() = 'authenticated' AND bucket_id = 'pizzas');
-
-create policy if not exists allow_auth_update_pizzas
-  on storage.objects
-  for update
-  with check (auth.role() = 'authenticated' AND bucket_id = 'pizzas');
-```
-
-If you've enabled an authenticated-only policy, ensure the client authenticates with Supabase Auth before uploading, or perform uploads server-side using the `service_role` key.
+If you do decide to use RLS, create appropriate policies in the Supabase SQL editor for your chosen bucket (for example, `pizzas`). The repository documentation previously included example SQL; those examples were intentionally removed to avoid encouraging permissive rules in production. Contact the maintainers if you need tailored RLS recommendations for your deployment.
 
 ## Code locations & helpers
 

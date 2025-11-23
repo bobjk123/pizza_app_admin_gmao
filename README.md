@@ -220,4 +220,4 @@ If you need the complete guide or instructions for rotating/removing leaked keys
 
 When Supabase is set up and configured, image uploads return a Supabase public URL that is saved in Firestore instead of a local filesystem path. In the current project state the `pizzas` bucket is used and uploads are working — images uploaded from `CreatePizzaScreen` are visible and the app saves the public URL in Firestore. If Supabase is not available or an upload fails, the app falls back to the local image simulation.
 
-Security note: storage enforces row-level security (RLS). For development the project may have a policy allowing uploads from the `anon` role to the `pizzas` bucket; for production prefer requiring `authenticated` users or performing uploads server-side with a `service_role` key.
+Security note: for development the project uses a permissive setup so uploads from the app work out-of-the-box. For production you should restrict uploads — either require authenticated users or perform uploads server-side using a `service_role` key. Row-Level Security (RLS) policies are optional and can be applied in your Supabase project if you need finer-grained controls.

@@ -13,6 +13,7 @@ All notable changes to this project are documented in this file.
   - `CONTRIBUTING_FIREBASE.md` added/updated with Supabase instructions, RLS SQL snippets (dev anon vs production authenticated), and testing guidance.
 - Web preview fix: web image preview now uses blob URLs to avoid 404s for local preview images.
 - RLS (Row-Level Security) guidance: added SQL snippets to allow anonymous uploads for development or require `authenticated` users in production. Apply these policies in Supabase SQL editor to avoid 403 errors like "new row violates row-level security policy".
+ - RLS guidance: documentation previously included SQL snippets for RLS policies. The docs have been updated to treat RLS as optional and to recommend production-safe approaches (authenticated uploads or server-side uploads using `service_role`).
 
 ### Testing / Verification
 
