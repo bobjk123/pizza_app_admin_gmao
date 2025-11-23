@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import '../../../components/my_text_field.dart';
 import '../blocs/sign_in_bloc/sign_in_bloc.dart';
+import 'package:pizza_app_admin_gmao/src/blocs/authentication_bloc/authentication_bloc.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -29,7 +30,16 @@ class _SignInScreenState extends State<SignInScreen> {
           setState(() {
             signInRequired = false;
           });
-          context.go('/');
+          // Avoid navigating immediately to `/` because the global
+          // AuthenticationBloc may not have processed the user change yet.
+          // If AuthenticationBloc already reports authenticated, navigate
+          // straight to home; otherwise, do nothing and let the
+          // AuthenticationBloc + SplashScreen handle the redirect when
+          // the user stream updates.
+          final authState = context.read<AuthenticationBloc>().state;
+          if (authState.status == AuthenticationStatus.authenticated) {
+            context.go('/home');
+          }
         } else if (state is SignInProcess) {
           setState(() {
             signInRequired = true;
