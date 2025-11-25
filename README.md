@@ -144,14 +144,11 @@ If uploaded images are not visible in the app or Firestore references don't matc
   - These changes remove the previous race condition that could cause an immediate redirect back to the login screen.
 - The local storage approach is intended for development and demo only. For real deployments use remote storage and secure Firestore rules.
 
-## 🎬 Demo GIF
+## 🎬 APP Demo GIF
 
 - Include a GIF that demonstrates the full flow: login → create pizza (select image) → preview → create → image appears in final folder and Firestore entry.
-- I did not add a GIF file to the repo. To create one locally on Windows you can use a screen recorder (e.g. ShareX) and export a GIF, then place it in the repo (e.g. `docs/demo.gif`) and link it here:
 
-```
-![Demo](docs/demo.gif)
-```
+![Demo](https://github.com/bobjk123/pizza_app_admin_gmao/blob/main/PizzaAdmin.gif)
 
 ## ✅ Recommendations
 
