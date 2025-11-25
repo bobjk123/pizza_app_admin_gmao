@@ -23,6 +23,7 @@ GoRouter router(AuthenticationBloc authBloc) {
         if (authBloc.state.status == AuthenticationStatus.unknown) {
           return '/';
         }
+        return null;
       },
       routes: [
         ShellRoute(
@@ -67,14 +68,12 @@ GoRouter router(AuthenticationBloc authBloc) {
                   return MultiBlocProvider(
                     providers: [
                       BlocProvider<CreatePizzaBloc>(
-                        create: (context) => CreatePizzaBloc(
-                          FirebasePizzaRepo()
-                        ),
+                        create: (context) =>
+                            CreatePizzaBloc(FirebasePizzaRepo()),
                       ),
                       BlocProvider<UploadPictureBloc>(
-                        create: (context) => UploadPictureBloc(
-                          FirebasePizzaRepo()
-                        ),
+                        create: (context) =>
+                            UploadPictureBloc(FirebasePizzaRepo()),
                       ),
                     ],
                     child: const CreatePizzaScreen(),
