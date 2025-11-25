@@ -10,6 +10,15 @@ This is a Flutter web application (also runnable on desktop) for administering a
 
 Main features: create/read pizzas, upload images (to Supabase when configured), and authentication (Firebase Auth).
 
+## 🆕 Recent changes (2025-11-25)
+
+- Login flow fixes: resolved a race condition so a successful sign-in now reliably navigates to `/home` on the first attempt. Changes included:
+  - `SignInScreen` now uses a `MultiBlocListener` to handle `SignInBloc` (progress/errors) and `AuthenticationBloc` (global auth state). Navigation to `/home` is performed only when `AuthenticationBloc` reports `authenticated`.
+  - `SignInBloc` includes a reentrancy guard to ignore duplicate sign-in attempts while one is in progress.
+- Router fix: `routes.dart` `redirect` now returns `null` explicitly to avoid analyzer warnings.
+- Documentation: added `docs/REQUIREMENTS.md` (Spanish) and `docs/REQUIREMENTS_EN.md` (English) and updated `docs/CHANGELOG.md` with an entry describing the login fixes. All doc changes were committed and pushed to `origin/main` on 2025-11-25.
+
+
 ## 🧩 Main widgets / UI pieces
 
 - **CreatePizzaScreen** — form to add a new pizza (name, description, price, macros, picture). Shows image preview and triggers creation.
