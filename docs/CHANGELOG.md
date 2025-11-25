@@ -15,6 +15,14 @@ All notable changes to this project are documented in this file.
 - RLS (Row-Level Security) guidance: added SQL snippets to allow anonymous uploads for development or require `authenticated` users in production. Apply these policies in Supabase SQL editor to avoid 403 errors like "new row violates row-level security policy".
  - RLS guidance: documentation previously included SQL snippets for RLS policies. The docs have been updated to treat RLS as optional and to recommend production-safe approaches (authenticated uploads or server-side uploads using `service_role`).
 
+### Login flow fixes (recent)
+
+- Date: 2025-11-25
+- Fix: Resolved a race condition in the login flow that could require a second sign-in attempt to reach the home screen.
+  - `SignInScreen` now uses a `MultiBlocListener` to separately handle `SignInBloc` state (progress/errors) and `AuthenticationBloc` state (global authenticated/unauthenticated). Navigation to `/home` occurs only when `AuthenticationBloc` reports `authenticated`, eliminating the premature navigation that could cause an immediate redirect back to login.
+  - `SignInBloc` now guards against reentrant sign-in attempts (ignored while a sign-in is already in progress).
+  - Result: Single successful sign-in reliably navigates to `/home` without needing a repeated attempt.
+
 ### Testing / Verification
 
 - Create the `pizzas` bucket in your Supabase project (Dashboard or REST API with `service_role`).

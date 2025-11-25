@@ -127,7 +127,10 @@ If uploaded images are not visible in the app or Firestore references don't matc
 
 ## ⚠️ Known behavior / caveats
 
-- Login flow: after a successful sign-in on the Login page, the app may redirect back to the login page once; signing in a second time (immediately) then proceeds to the home page. This is a known navigation timing quirk — likely caused by navigation being called during the widget build lifecycle. A fix is scheduled to defer navigation using a post-frame callback.
+- Login flow: Fixed in recent commits — after a successful sign-in the app now navigates reliably to `/home` without requiring a second attempt. The fix includes:
+  - `SignInScreen` now uses a `MultiBlocListener` that listens to `SignInBloc` (progress / errors) and `AuthenticationBloc` (global auth state). Navigation to `/home` happens only when `AuthenticationBloc` reports `authenticated`.
+  - `SignInBloc` includes a reentrancy guard to ignore duplicate sign-in attempts while a sign-in is in progress.
+  - These changes remove the previous race condition that could cause an immediate redirect back to the login screen.
 - The local storage approach is intended for development and demo only. For real deployments use remote storage and secure Firestore rules.
 
 ## 🎬 Demo GIF
@@ -154,33 +157,6 @@ Design credit:
 - Inspired by Romain Girou — The Best Flutter Course in 3 Hours • Pizza App #1
   - YouTube: https://www.youtube.com/@Romain_Girou
   - Video: https://www.youtube.com/watch?v=PqOOUAbViLc
-
----
-
-If you want, I can:
-- Add the demo GIF to the repo after you record it.
-- Make the final images folder configurable instead of hard-coded.
-- Create a small script to sync `assets/images/` between the two folders automatically.
-
-Enjoy! 🍕🚀
-
-
-# pizza_app_admin_gmao
-
-A new Flutter project.
-
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
 
 ## 🔐 Contributing to Firebase (quick summary)
 
