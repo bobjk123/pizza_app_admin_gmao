@@ -24,33 +24,42 @@ class _SignInScreenState extends State<SignInScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<SignInBloc, SignInState>(
-      listener: (context, state) {
-        if (state is SignInSuccess) {
-          setState(() {
-            signInRequired = false;
-          });
-          // Avoid navigating immediately to `/` because the global
-          // AuthenticationBloc may not have processed the user change yet.
-          // If AuthenticationBloc already reports authenticated, navigate
-          // straight to home; otherwise, do nothing and let the
-          // AuthenticationBloc + SplashScreen handle the redirect when
-          // the user stream updates.
-          final authState = context.read<AuthenticationBloc>().state;
-          if (authState.status == AuthenticationStatus.authenticated) {
-            context.go('/home');
-          }
-        } else if (state is SignInProcess) {
-          setState(() {
-            signInRequired = true;
-          });
-        } else if (state is SignInFailure) {
-          setState(() {
-            signInRequired = false;
-            _errorMsg = 'Invalid email or password';
-          });
-        }
-      },
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<SignInBloc, SignInState>(
+          listener: (context, state) {
+            if (state is SignInSuccess) {
+              setState(() {
+                signInRequired = false;
+              });
+              // Do not navigate here; wait for AuthenticationBloc to
+              // report the authenticated state. The AuthenticationBloc
+              // listener below will perform the navigation when ready.
+            } else if (state is SignInProcess) {
+              setState(() {
+                signInRequired = true;
+              });
+            } else if (state is SignInFailure) {
+              setState(() {
+                signInRequired = false;
+                _errorMsg = 'Invalid email or password';
+              });
+            }
+          },
+        ),
+        BlocListener<AuthenticationBloc, AuthenticationState>(
+          listener: (context, authState) {
+            if (authState.status == AuthenticationStatus.authenticated) {
+              // If we're currently on the login screen, go to home once
+              // authentication is established.
+              if (ModalRoute.of(context)?.settings.name == '/login') {
+                // Use go to replace the stack
+                context.go('/home');
+              }
+            }
+          },
+        ),
+      ],
       child: Scaffold(
         backgroundColor: Theme.of(context).colorScheme.surface,
         body: Padding(
