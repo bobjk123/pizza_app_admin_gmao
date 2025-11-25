@@ -18,6 +18,8 @@ Main features: create/read pizzas, upload images (to Supabase when configured), 
 - Router fix: `routes.dart` `redirect` now returns `null` explicitly to avoid analyzer warnings.
 - Documentation: added `docs/REQUIREMENTS.md` (Spanish) and `docs/REQUIREMENTS_EN.md` (English) and updated `docs/CHANGELOG.md` with an entry describing the login fixes. All doc changes were committed and pushed to `origin/main` on 2025-11-25.
 
+ - Full changelog: [docs/CHANGELOG.md](docs/CHANGELOG.md)
+
 
 ## 🧩 Main widgets / UI pieces
 
