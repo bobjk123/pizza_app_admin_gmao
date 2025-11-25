@@ -23,6 +23,8 @@ All notable changes to this project are documented in this file.
   - `SignInBloc` now guards against reentrant sign-in attempts (ignored while a sign-in is already in progress).
   - Result: Single successful sign-in reliably navigates to `/home` without needing a repeated attempt.
 
+  - Docs: README updated with recent changes (see commit `8885e53` — 2025-11-25). The README now includes a "Recent changes (2025-11-25)" section summarizing the login fixes, router update and new requirements documents.
+
 ### Testing / Verification
 
 - Create the `pizzas` bucket in your Supabase project (Dashboard or REST API with `service_role`).
